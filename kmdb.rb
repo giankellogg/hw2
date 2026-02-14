@@ -78,9 +78,60 @@
 # Delete existing data, so you'll start fresh each time this script is run.
 # Use `Model.destroy_all` code.
 # TODO!
+Role.destroy_all
+Movie.destroy_all
+Actor.destroy_all
+Agent.destroy_all
+Studio.destroy_all
 
 # Generate models and tables, according to the domain model.
 # TODO!
+# Studio
+warner_bros = Studio.create!(name: "Warner Bros.")
+
+# Movies
+batman_begins = Movie.create!(title: "Batman Begins", year_released: 2005, rated: "PG-13", studio: warner_bros)
+dark_knight = Movie.create!(title: "The Dark Knight", year_released: 2008, rated: "PG-13", studio: warner_bros)
+dark_knight_rises = Movie.create!(title: "The Dark Knight Rises", year_released: 2012, rated: "PG-13", studio: warner_bros)
+
+# Actors (created without agent first)
+christian_bale = Actor.create!(name: "Christian Bale")
+michael_caine = Actor.create!(name: "Michael Caine")
+liam_neeson = Actor.create!(name: "Liam Neeson")
+katie_holmes = Actor.create!(name: "Katie Holmes")
+gary_oldman = Actor.create!(name: "Gary Oldman")
+heath_ledger = Actor.create!(name: "Heath Ledger")
+aaron_eckhart = Actor.create!(name: "Aaron Eckhart")
+maggie_gyllenhaal = Actor.create!(name: "Maggie Gyllenhaal")
+tom_hardy = Actor.create!(name: "Tom Hardy")
+joseph_gordon_levitt = Actor.create!(name: "Joseph Gordon-Levitt")
+anne_hathaway = Actor.create!(name: "Anne Hathaway")
+
+# Roles (join table) — no hard-coded IDs, just use objects
+# Batman Begins
+Role.create!(movie: batman_begins, actor: christian_bale, character_name: "Bruce Wayne")
+Role.create!(movie: batman_begins, actor: michael_caine, character_name: "Alfred")
+Role.create!(movie: batman_begins, actor: liam_neeson, character_name: "Ra's Al Ghul")
+Role.create!(movie: batman_begins, actor: katie_holmes, character_name: "Rachel Dawes")
+Role.create!(movie: batman_begins, actor: gary_oldman, character_name: "Commissioner Gordon")
+
+# The Dark Knight
+Role.create!(movie: dark_knight, actor: christian_bale, character_name: "Bruce Wayne")
+Role.create!(movie: dark_knight, actor: heath_ledger, character_name: "Joker")
+Role.create!(movie: dark_knight, actor: aaron_eckhart, character_name: "Harvey Dent")
+Role.create!(movie: dark_knight, actor: michael_caine, character_name: "Alfred")
+Role.create!(movie: dark_knight, actor: maggie_gyllenhaal, character_name: "Rachel Dawes")
+
+# The Dark Knight Rises
+Role.create!(movie: dark_knight_rises, actor: christian_bale, character_name: "Bruce Wayne")
+Role.create!(movie: dark_knight_rises, actor: gary_oldman, character_name: "Commissioner Gordon")
+Role.create!(movie: dark_knight_rises, actor: tom_hardy, character_name: "Bane")
+Role.create!(movie: dark_knight_rises, actor: joseph_gordon_levitt, character_name: "John Blake")
+Role.create!(movie: dark_knight_rises, actor: anne_hathaway, character_name: "Selina Kyle")
+
+# Agent + representation (only Christian Bale)
+ari_emanuel = Agent.create!(name: "Ari Emanuel")
+christian_bale.update!(agent: ari_emanuel)
 
 # Insert data into the database that reflects the sample data shown above.
 # Do not use hard-coded foreign key IDs.
@@ -93,6 +144,16 @@ puts ""
 
 # Query the movies data and loop through the results to display the movies output.
 # TODO!
+movies = Movie.includes(:studio).order(:year_released)
+
+movies.each do |movie|
+  title = movie.title.ljust(22)
+  year  = movie.year_released.to_s.ljust(14)
+  rated = movie.rated.ljust(6)
+  studio = movie.studio.name
+
+  puts "#{title} #{year} #{rated} #{studio}"
+end
 
 # Prints a header for the cast output
 puts ""
@@ -102,6 +163,15 @@ puts ""
 
 # Query the cast data and loop through the results to display the cast output for each movie.
 # TODO!
+roles = Role.joins(:movie, :actor).includes(:movie, :actor).order("movies.year_released, roles.id")
+
+roles.each do |role|
+  movie_title = role.movie.title.ljust(22)
+  actor_name  = role.actor.name.ljust(22)
+  character   = role.character_name
+
+  puts "#{movie_title} #{actor_name} #{character}"
+end
 
 # Prints a header for the agent's list of represented actors output
 puts ""
@@ -111,3 +181,8 @@ puts ""
 
 # Query the actor data and loop through the results to display the agent's list of represented actors output.
 # TODO!
+represented_actors = Actor.joins(:agent).order(:name)
+
+represented_actors.each do |actor|
+  puts actor.name
+end
